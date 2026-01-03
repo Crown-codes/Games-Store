@@ -1,308 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NEXUS Game Store</title>
-
+<meta charset="UTF-8">
+<title>NEXUS Launcher</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle at top, #111, #000);
-  color: #fff;
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 40px;
-  border-bottom: 1px solid #222;
-}
-
-button {
-  background: #2563eb;
-  border: none;
-  padding: 8px 14px;
-  color: #fff;
-  border-radius: 6px;
-  cursor: pointer;
-}
-button.secondary { background: #333; }
-button.danger { background: #b91c1c; }
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-}
-
-.container { padding: 40px; }
-
-.card {
-  background: #111;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid #222;
-  cursor: pointer;
-}
-.card:hover { transform: scale(1.03); transition: 0.3s; }
-
-.thumb {
-  height: 160px;
-  background: #222;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-.badge {
-  position: absolute;
-  top: 10px;
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 4px;
-}
-.free { left: 10px; background: green; }
-.sale { right: 10px; background: red; }
-
-.card-body { padding: 14px; }
-
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.7);
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-.modal-content {
-  background: #0b0b0b;
-  padding: 20px;
-  width: 90%;
-  max-width: 900px;
-  border-radius: 12px;
-}
-
-input, select, textarea {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 8px;
-  background: #111;
-  border: 1px solid #333;
-  color: white;
-  border-radius: 6px;
-}
-
-.tabs button {
-  background: #111;
-  margin-right: 6px;
-}
-
-.hidden { display: none; }
+body{margin:0;background:#0b0d12;color:#e5e7eb;font-family:system-ui}
+header{display:flex;justify-content:space-between;padding:16px;background:#0f1320}
+button{background:#3b82f6;border:none;color:white;padding:8px 14px;border-radius:8px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,220px);gap:20px;padding:20px}
+.card{background:#141824;border-radius:14px;overflow:hidden;cursor:pointer}
+.card img,.card video{width:100%;height:140px;object-fit:cover}
+.card video{display:none}
+.card:hover video{display:block}
+.card-content{padding:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center}
+.modal.active{display:flex}
+.panel{background:#0f1320;padding:20px;border-radius:14px;width:90%;max-width:400px}
 </style>
 </head>
-
 <body>
-
-<!-- MOCK USER -->
-<script>
-const currentUser = { name: "Admin", role: "admin" }; // change to "user"
-</script>
 
 <header>
   <h2>NEXUS</h2>
-  <div>
-    <span id="userRole"></span>
-    <button id="adminBtn" class="secondary">⚙ Admin</button>
-  </div>
+  <button onclick="openLogin()">Login</button>
 </header>
 
-<div class="container">
-  <h2>Store</h2>
-  <div id="store" class="grid"></div>
-</div>
+<div class="grid" id="grid"></div>
 
-<!-- ADMIN DASHBOARD -->
-<div class="modal" id="adminModal">
-  <div class="modal-content">
-    <h2>Admin Dashboard</h2>
-
-    <div class="tabs">
-      <button onclick="showTab('analytics')">Analytics</button>
-      <button onclick="showTab('games')">Games</button>
-      <button onclick="showTab('moderation')">Moderation</button>
-    </div>
-
-    <div id="analytics" class="tab">
-      <p>Total Downloads: <b id="totalDownloads"></b></p>
-      <p>Total Revenue: $<b id="totalRevenue"></b></p>
-    </div>
-
-    <div id="games" class="tab hidden">
-      <button onclick="openEditor()">➕ Add Game</button>
-      <div id="gameList"></div>
-    </div>
-
-    <div id="moderation" class="tab hidden">
-      <p>⚠ Reported reviews</p>
-      <ul id="reviews"></ul>
-    </div>
-
-    <button onclick="closeAdmin()" class="secondary">Close</button>
+<!-- GAME MODAL -->
+<div class="modal" id="gameModal">
+  <div class="panel">
+    <h3 id="gTitle"></h3>
+    <p id="gDesc"></p>
+    <button onclick="install()">Install</button>
+    <button onclick="closeModal()">Close</button>
   </div>
 </div>
 
-<!-- GAME EDITOR -->
-<div class="modal" id="editorModal">
-  <div class="modal-content">
-    <h3>Game Editor</h3>
-    <input id="gTitle" placeholder="Title" />
-    <input id="gGenre" placeholder="Genre" />
-    <input id="gPrice" type="number" placeholder="Price" />
-    <input id="gDiscount" type="number" placeholder="Discount %" />
-    <select id="gStatus">
-      <option value="draft">Draft</option>
-      <option value="published">Published</option>
-    </select>
-    <label><input type="checkbox" id="gFree" /> Free Week</label>
-    <textarea id="gDesc" placeholder="Description"></textarea>
-    <button onclick="saveGame()">Save</button>
-    <button onclick="closeEditor()" class="secondary">Cancel</button>
+<!-- LOGIN -->
+<div class="modal" id="loginModal">
+  <div class="panel">
+    <h3>Login</h3>
+    <button onclick="loginAdmin()">Login as Admin</button>
+    <button onclick="closeLogin()">Close</button>
   </div>
 </div>
 
 <script>
-const games = [
-  {
-    id: 1,
-    title: "Nebula Rift",
-    genre: "Action RPG",
-    price: 40,
-    discount: 25,
-    free: false,
-    status: "published",
-    downloads: 120000,
-    revenue: 480000,
-    description: "Explore the cosmos"
-  }
+const STORAGE="nexus_games";
+const games=JSON.parse(localStorage.getItem(STORAGE))||[
+ {id:"nebula",title:"Nebula Rift",desc:"Sci-Fi RPG",
+  image:"https://via.placeholder.com/300x140",
+  video:"",
+  downloadUrl:"https://yourserver.com/nebula.zip",
+  exe:"Nebula.exe"}
 ];
 
-const reviews = [
-  { user: "Alex", text: "Amazing!", reported: false },
-  { user: "Sam", text: "Buggy", reported: true }
-];
+let selected=null;
 
-let editingId = null;
-
-function renderStore() {
-  const store = document.getElementById("store");
-  store.innerHTML = "";
-  games.filter(g => g.status === "published").forEach(g => {
-    store.innerHTML += `
-      <div class="card">
-        <div class="thumb">
-          ▶
-          ${g.free ? '<span class="badge free">FREE</span>' : ''}
-          ${g.discount ? `<span class="badge sale">-${g.discount}%</span>` : ''}
-        </div>
-        <div class="card-body">
-          <b>${g.title}</b><br/>
-          <small>${g.genre}</small><br/>
-          <b>${g.free ? "Free" : "$" + (g.price - g.price * g.discount / 100)}</b>
-        </div>
-      </div>
-    `;
-  });
+function render(){
+ const g=document.getElementById("grid");
+ g.innerHTML="";
+ games.forEach(game=>{
+  const c=document.createElement("div");
+  c.className="card";
+  c.innerHTML=`
+   ${game.video?`<video src="${game.video}" muted loop></video>`:""}
+   <img src="${game.image}">
+   <div class="card-content"><b>${game.title}</b></div>`;
+  c.onmouseenter=()=>c.querySelector("video")?.play();
+  c.onmouseleave=()=>c.querySelector("video")?.pause();
+  c.onclick=()=>openGame(game);
+  g.appendChild(c);
+ });
 }
 
-function renderAdmin() {
-  document.getElementById("totalDownloads").innerText =
-    games.reduce((a,g)=>a+g.downloads,0);
-  document.getElementById("totalRevenue").innerText =
-    games.reduce((a,g)=>a+g.revenue,0);
-
-  document.getElementById("gameList").innerHTML =
-    games.map(g=>`
-      <div>
-        ${g.title} (${g.status})
-        <button onclick="editGame(${g.id})">✏</button>
-        <button onclick="deleteGame(${g.id})" class="danger">🗑</button>
-      </div>
-    `).join("");
-
-  document.getElementById("reviews").innerHTML =
-    reviews.filter(r=>r.reported).map(r=>`<li>${r.user}: ${r.text}</li>`).join("");
+function openGame(g){
+ selected=g;
+ document.getElementById("gTitle").textContent=g.title;
+ document.getElementById("gDesc").textContent=g.desc;
+ document.getElementById("gameModal").classList.add("active");
 }
 
-function showTab(id){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
+function closeModal(){document.getElementById("gameModal").classList.remove("active")}
+function openLogin(){document.getElementById("loginModal").classList.add("active")}
+function closeLogin(){document.getElementById("loginModal").classList.remove("active")}
+function loginAdmin(){alert("Admin enabled");closeLogin()}
+
+/* 🔥 REAL INSTALL LOGIC */
+async function install(){
+ if(window.launcher){
+   await window.launcher.downloadGame(selected);
+   alert("Game installed!");
+ } else {
+   alert("Installer works only in Electron launcher");
+ }
 }
 
-function openEditor() {
-  editingId = null;
-  document.getElementById("editorModal").style.display="flex";
-}
-
-function editGame(id){
-  const g = games.find(x=>x.id===id);
-  editingId = id;
-  gTitle.value = g.title;
-  gGenre.value = g.genre;
-  gPrice.value = g.price;
-  gDiscount.value = g.discount;
-  gFree.checked = g.free;
-  gStatus.value = g.status;
-  gDesc.value = g.description;
-  editorModal.style.display="flex";
-}
-
-function saveGame(){
-  const g = {
-    id: editingId || Date.now(),
-    title: gTitle.value,
-    genre: gGenre.value,
-    price: +gPrice.value,
-    discount: +gDiscount.value,
-    free: gFree.checked,
-    status: gStatus.value,
-    description: gDesc.value,
-    downloads: 0,
-    revenue: 0
-  };
-  if(editingId){
-    const i = games.findIndex(x=>x.id===editingId);
-    games[i]=g;
-  } else games.push(g);
-  closeEditor();
-  renderStore();
-  renderAdmin();
-}
-
-function deleteGame(id){
-  const i = games.findIndex(x=>x.id===id);
-  games.splice(i,1);
-  renderStore(); renderAdmin();
-}
-
-function closeEditor(){ editorModal.style.display="none"; }
-function closeAdmin(){ adminModal.style.display="none"; }
-
-document.getElementById("userRole").innerText =
-  currentUser.name + " (" + currentUser.role + ")";
-
-if(currentUser.role !== "admin")
-  adminBtn.style.display="none";
-
-adminBtn.onclick = () => {
-  adminModal.style.display="flex";
-  renderAdmin();
-};
-
-renderStore();
+render();
 </script>
-
 </body>
 </html>
