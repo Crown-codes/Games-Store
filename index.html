@@ -1,205 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>NEXUS Launcher</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  /* 🌌 Global Styles */
-  body {
-    margin: 0;
-    background: linear-gradient(135deg, #0b0d12, #141824);
-    color: #e5e7eb;
-    font-family: system-ui, sans-serif;
-  }
-
-  /* 🚀 Header */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
-    background: #0f1320;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  }
-  header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #3b82f6;
-    letter-spacing: 2px;
-  }
-
-  /* 🎯 Buttons */
-  button {
-    background: #3b82f6;
-    border: none;
-    color: white;
-    padding: 10px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-  }
-  button:hover {
-    background: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59,130,246,0.4);
-  }
-
-  /* 🧩 Grid Layout */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-    padding: 20px;
-  }
-
-  /* 🎮 Game Cards */
-  .card {
-    background: #1a1f2e;
-    border-radius: 14px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
-  }
-  .card img, .card video {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    border-bottom: 1px solid #2c2f3a;
-  }
-  .card video { display: none; }
-  .card:hover video { display: block; }
-  .card-content {
-    padding: 12px;
-    text-align: center;
-    font-weight: bold;
-    color: #f9fafb;
-  }
-
-  /* 📌 Modal */
-  .modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.6);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-  }
-  .modal.active { display: flex; }
-
-  /* 📦 Panel */
-  .panel {
-    background: #0f1320;
-    padding: 24px;
-    border-radius: 14px;
-    width: 90%;
-    max-width: 420px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-    animation: fadeIn 0.4s ease;
-  }
-  .panel h3 {
-    margin-top: 0;
-    color: #3b82f6;
-    text-align: center;
-  }
-
-  /* ✨ Animations */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>NEXUS Launcher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin:0; background:#0b0d12; color:#e5e7eb; font-family:system-ui; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:16px; background:#0f1320; }
+    header h2 { margin:0; color:#3b82f6; }
+    header nav a { color:#3b82f6; margin-left:12px; text-decoration:none; font-weight:600; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,220px); gap:20px; padding:20px; }
+    .card { background:#141824; border-radius:14px; overflow:hidden; cursor:pointer; transition:transform 0.3s ease; }
+    .card:hover { transform:scale(1.05); }
+    .card img { width:100%; height:140px; object-fit:cover; }
+    .card-content { padding:12px; }
+    .panel { background:#141824; padding:20px; border-radius:14px; margin:40px auto; width:90%; max-width:400px; }
+    input { display:block; width:100%; margin:10px 0; padding:10px; border-radius:8px; border:none; }
+    button { background:#3b82f6; border:none; color:white; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:600; }
+    button:hover { background:#2563eb; }
+    .hidden { display:none; }
+  </style>
 </head>
 <body>
 
 <header>
   <h2>NEXUS</h2>
-  <button onclick="openLogin()">Login</button>
+  <nav>
+    <a href="#" onclick="showPage('store')">Store</a>
+    <a href="#" onclick="showPage('login')">Login</a>
+    <a href="#" onclick="showPage('profile')">Profile</a>
+    <a href="#" onclick="showPage('admin')">Admin</a>
+  </nav>
 </header>
 
-<div class="grid" id="grid"></div>
+<!-- 🕹️ STORE -->
+<div id="storePage">
+  <div class="grid" id="grid"></div>
+</div>
 
-<!-- 🎮 GAME MODAL -->
-<div class="modal" id="gameModal">
+<!-- 🔑 LOGIN -->
+<div id="loginPage" class="hidden">
   <div class="panel">
-    <h3 id="gTitle"></h3>
-    <p id="gDesc"></p>
-    <button onclick="install()">Install</button>
-    <button onclick="closeModal()">Close</button>
+    <h3>Login</h3>
+    <form onsubmit="return loginUser(event)">
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
   </div>
 </div>
 
-<!-- 🔑 LOGIN MODAL -->
-<div class="modal" id="loginModal">
+<!-- 👤 PROFILE -->
+<div id="profilePage" class="hidden">
   <div class="panel">
-    <h3>Login</h3>
-    <button onclick="loginAdmin()">Login as Admin</button>
-    <button onclick="closeLogin()">Close</button>
+    <h3>User Profile</h3>
+    <p id="profileName">Welcome, Guest</p>
+    <h4>Your Library</h4>
+    <ul id="library"></ul>
+  </div>
+</div>
+
+<!-- 🛠️ ADMIN -->
+<div id="adminPage" class="hidden">
+  <div class="panel">
+    <h3>Admin Dashboard</h3>
+    <button onclick="addFakeGame()">Add Fake Game</button>
+    <button onclick="listUsers()">List Users</button>
+    <div id="adminOutput"></div>
   </div>
 </div>
 
 <script>
-const STORAGE = "nexus_games";
-const games = JSON.parse(localStorage.getItem(STORAGE)) || [
-  {
-    id: "nebula",
-    title: "Nebula Drift",
-    desc: "Sci-Fi RPG",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTtLbJtL77u_S8D9_iEghnkpX-lXprD80UKw&s",
-    video: "https://youtu.be/pIQifuOTTe8",
-    downloadUrl: "https://yourserver.com/nebula.zip",
-    exe: "Nebula.exe"
-  }
+/* 🎮 Fake Games */
+const games = [
+  { title:"Cyber Drift", desc:"Futuristic racing", image:"https://placehold.co/220x140" },
+  { title:"Pixel Quest", desc:"Retro RPG", image:"https://placehold.co/220x140" },
+  { title:"Shadow Ops", desc:"Tactical shooter", image:"https://placehold.co/220x140" }
 ];
 
-let selected = null;
-
-function render() {
+/* Render Store */
+function renderStore() {
   const g = document.getElementById("grid");
   g.innerHTML = "";
   games.forEach(game => {
     const c = document.createElement("div");
     c.className = "card";
     c.innerHTML = `
-      ${game.video ? `<video src="${game.video}" muted loop></video>` : ""}
-      <img src="${game.image}">
-      <div class="card-content">${game.title}</div>`;
-    c.onmouseenter = () => c.querySelector("video")?.play();
-    c.onmouseleave = () => c.querySelector("video")?.pause();
-    c.onclick = () => openGame(game);
+      <img src="${game.image}" alt="${game.title}">
+      <div class="card-content"><b>${game.title}</b><p>${game.desc}</p></div>`;
     g.appendChild(c);
   });
 }
 
-function openGame(g) {
-  selected = g;
-  document.getElementById("gTitle").textContent = g.title;
-  document.getElementById("gDesc").textContent = g.desc;
-  document.getElementById("gameModal").classList.add("active");
+/* Page Switching */
+function showPage(page) {
+  document.getElementById("storePage").classList.add("hidden");
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("profilePage").classList.add("hidden");
+  document.getElementById("adminPage").classList.add("hidden");
+  if(page==="store") document.getElementById("storePage").classList.remove("hidden");
+  if(page==="login") document.getElementById("loginPage").classList.remove("hidden");
+  if(page==="profile") { document.getElementById("profilePage").classList.remove("hidden"); loadProfile(); }
+  if(page==="admin") document.getElementById("adminPage").classList.remove("hidden");
 }
 
-function closeModal() { document.getElementById("gameModal").classList.remove("active"); }
-function openLogin() { document.getElementById("loginModal").classList.add("active"); }
-function closeLogin() { document.getElementById("loginModal").classList.remove("active"); }
-function loginAdmin() { alert("Admin enabled"); closeLogin(); }
-
-/* 🔥 REAL INSTALL LOGIC */
-async function install() {
-  if (window.launcher) {
-    await window.launcher.downloadGame(selected);
-    alert("Game installed!");
+/* Login System */
+function loginUser(event) {
+  event.preventDefault();
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
+  if(user==="admin" && pass==="1234") {
+    localStorage.setItem("user","Admin");
+    alert("Logged in as Admin");
+    showPage("admin");
   } else {
-    alert("Installer works only in Electron launcher");
+    localStorage.setItem("user",user);
+    alert("Logged in as "+user);
+    showPage("profile");
   }
 }
 
-render();
+/* Profile */
+function loadProfile() {
+  const user = localStorage.getItem("user") || "Guest";
+  document.getElementById("profileName").textContent = "Welcome, " + user;
+  document.getElementById("library").innerHTML = "<li>Cyber Drift</li><li>Pixel Quest</li>";
+}
+
+/* Admin */
+function addFakeGame() {
+  games.push({title:"New Game", desc:"Added by Admin", image:"https://placehold.co/220x140"});
+  renderStore();
+  document.getElementById("adminOutput").innerHTML += "<p>New fake game added!</p>";
+}
+function listUsers() {
+  const user = localStorage.getItem("user");
+  document.getElementById("adminOutput").innerHTML = "<p>Current user: " + user + "</p>";
+}
+
+/* Init */
+renderStore();
 </script>
 </body>
 </html>
